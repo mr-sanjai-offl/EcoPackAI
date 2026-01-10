@@ -1,3 +1,5 @@
+-- schema
+
 CREATE TABLE materials (
     material_id SERIAL PRIMARY KEY,
     material_name VARCHAR(100) NOT NULL,
