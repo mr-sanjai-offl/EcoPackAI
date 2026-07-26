@@ -30,7 +30,13 @@ Raw Data (Products + Materials)
     -> Recommendation Engine (Top-5 Ranked Materials)
 ```
 
-## Recommendation Engine
+### 3. Analytics Backend (Phase 4)
+- **Database**: SQLite/PostgreSQL (via SQLAlchemy ORM).
+- **Caching**: 60-second Time-To-Live (TTL) caching layer to protect DB under heavy dashboard load.
+- **Reporting**: Automated CSV Sustainability Report generation.
+- **Aggregation**: SQL-level groupings for trends, categorical breakdowns, and material frequencies.
+
+### 4. Frontend Application (Upcoming)
 The system uses a Two-Stage Hybrid Architecture:
 1. **Stage 1 (Rule-Based)**: Eliminates materials that violate physics (weight capacity) or compliance (food safety).
 2. **Stage 2 (ML Ranking)**: XGBoost Regressor scores remaining materials on suitability (0-100), ranking them by predicted cost, CO2 emissions, and strength.
@@ -93,8 +99,9 @@ python ml/model_development/model_evaluation.py
 
 ## Phases
 - [x] Phase 0: Architecture & Requirements
-- [x] Phase 1: Data Engineering Pipeline
-- [x] Phase 2: ML Model Development & Recommendation Engine
-- [ ] Phase 3: Backend API (FastAPI)
-- [ ] Phase 4: Frontend (Next.js)
-- [ ] Phase 5: Deployment (Docker, CI/CD)
+- [x] **Phase 1**: Data Engineering & Preprocessing
+- [x] **Phase 2**: Machine Learning & Recommendation Engine
+- [x] **Phase 3**: FastAPI Production Backend
+- [x] **Phase 4**: Business Intelligence & Sustainability Analytics
+- [ ] **Phase 5**: Next.js Frontend Web Application
+- [ ] **Phase 6**: Dockerization & CI/CD

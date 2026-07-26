@@ -71,3 +71,30 @@ class ErrorResponse(BaseModel):
     error_code: str
     message: str
     detail: Optional[str] = None
+
+
+class AnalyticsOverviewResponse(BaseModel):
+    """High-level KPIs for the BI Dashboard."""
+    total_predictions: int
+    total_co2_saved_kg: float
+    total_cost_saved_usd: float
+    average_co2_per_package: float
+    average_cost_per_package: float
+
+
+class MaterialFrequencyResponse(BaseModel):
+    """Data for Material Treemap/Bar Charts."""
+    material_name: str
+    count: int
+
+
+class CategoryBreakdownResponse(BaseModel):
+    """Data for Category Pie Charts."""
+    category: str
+    count: int
+
+
+class DailyTrendResponse(BaseModel):
+    """Data for Prediction Volume Line Charts."""
+    date: str
+    predictions: int

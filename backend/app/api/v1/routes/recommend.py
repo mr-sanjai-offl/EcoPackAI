@@ -12,7 +12,7 @@ It only handles HTTP concerns:
 This separation means the RecommendationService can be
 unit-tested WITHOUT starting a web server.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from app.schemas.request import ProductRequest
 from app.schemas.response import RecommendationResponse, ErrorResponse
 from app.services.recommendation_service import RecommendationService
@@ -30,9 +30,13 @@ router = APIRouter()
     summary="Get Packaging Recommendations",
     description="Submit product details and receive top-N eco-friendly packaging material recommendations ranked by ML suitability score."
 )
-async def recommend(request: ProductRequest):
+async def recommend(request: ProductRequest, background_tasks: BackgroundTasks):
     """Generate AI-powered packaging recommendations."""
     result = RecommendationService.recommend(request)
+    
+    # Save to database in the background (zero impact on API latency)
+    background_tasks.add_task(RecommendationService.save_history, request, result)
+    
     return RecommendationResponse(
         status="success",
         model_version=result["model_version"],

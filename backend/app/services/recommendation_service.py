@@ -15,6 +15,8 @@ import pandas as pd
 import numpy as np
 from app.services.model_service import model_service
 from app.schemas.request import ProductRequest
+from app.db.database import SessionLocal
+from app.models.analytics import PredictionHistory, RecommendationResult
 
 logger = logging.getLogger("ecopackai")
 
@@ -137,7 +139,51 @@ class RecommendationService:
             "total_materials_evaluated": total_evaluated,
             "recommendations": recommendations
         }
-    
+        
+    @staticmethod
+    def save_history(request: ProductRequest, result: dict):
+        """Save prediction and recommendations to the database asynchronously.
+        
+        We open a new DB session here because this runs as a BackgroundTask
+        after the main API request has finished (and its DB session is closed).
+        """
+        try:
+            with SessionLocal() as db:
+                prediction = PredictionHistory(
+                    model_version=result["model_version"],
+                    inference_time_ms=result["inference_time_ms"],
+                    product_weight_kg=request.product_weight_kg,
+                    dimensions_cm=request.dimensions_cm,
+                    category=request.category,
+                    sub_category=request.sub_category,
+                    fragile=request.fragile,
+                    food_grade_required=request.food_grade_required,
+                    max_packaging_cost=request.max_packaging_cost,
+                    preferred_material_type=request.preferred_material_type,
+                    sustainability_priority=request.sustainability_priority
+                )
+                db.add(prediction)
+                db.flush()  # To get the prediction.id
+                
+                for rec in result["recommendations"]:
+                    db_rec = RecommendationResult(
+                        prediction_id=prediction.id,
+                        rank=rec["rank"],
+                        material_id=rec["material_id"],
+                        material_name=rec["material_name"],
+                        overall_score=rec["overall_score"],
+                        confidence=rec["confidence"],
+                        predicted_cost_per_kg=rec["predicted_cost_per_kg"],
+                        predicted_co2_kg=rec["predicted_co2_kg"],
+                        strength_score=rec["strength_score"],
+                        sustainability_rating=rec["sustainability_rating"]
+                    )
+                    db.add(db_rec)
+                
+                db.commit()
+        except Exception as e:
+            logger.error(f"Failed to save prediction history to DB: {e}", exc_info=True)
+
     @staticmethod
     def _generate_reason(row) -> str:
         reasons = []

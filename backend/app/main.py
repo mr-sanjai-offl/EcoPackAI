@@ -23,7 +23,9 @@ from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.services.model_service import model_service
 from app.middleware.request_id import RequestIDMiddleware
-from app.api.v1.routes import recommend, health
+from app.api.v1.routes import recommend, health, analytics as analytics_routes
+from app.db.database import Base, engine
+from app.models import analytics as analytics_models  # Import to register models
 
 # Configure structured logging
 logging.basicConfig(
@@ -47,6 +49,13 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"CRITICAL: Failed to load ML model: {e}")
         # Server starts but /ready will report not_ready
+        
+    # Initialize database tables
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables verified/created successfully.")
+    except Exception as e:
+        logger.error(f"CRITICAL: Failed to initialize database: {e}")
     
     yield  # Server is running and accepting requests
     
@@ -106,6 +115,11 @@ def create_app() -> FastAPI:
         recommend.router,
         prefix=settings.API_PREFIX,
         tags=["Recommendations"]
+    )
+    app.include_router(
+        analytics_routes.router,
+        prefix=f"{settings.API_PREFIX}/analytics",
+        tags=["Business Intelligence"]
     )
     
     return app
