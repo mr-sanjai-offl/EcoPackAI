@@ -1,44 +1,40 @@
 import pandas as pd
 import os
-import json
-from validation import validate_data
+from validation import validate_products, validate_materials
 from cleaning import DataCleaner
 from feature_engineering import FeatureEngineer
 
-def run_pipeline(input_path: str, processed_path: str, metadata_path: str):
-    print("Running EcoPackAI Data Pipeline...")
+def run_pipeline():
+    print("Running EcoPackAI Data Pipeline (Real Data)...")
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    products_in = os.path.join(base_dir, 'data', 'external', 'product_categories.csv')
+    materials_in = os.path.join(base_dir, 'data', 'external', 'eco_packaging_materials.csv')
     
-    # Extract
-    df = pd.read_csv(input_path)
+    products_out = os.path.join(base_dir, 'data', 'processed', 'processed_products.csv')
+    materials_out = os.path.join(base_dir, 'data', 'processed', 'processed_materials.csv')
     
-    # Transform (Clean -> Validate -> Engineer)
+    # 1. Load Data
+    df_products = pd.read_csv(products_in)
+    df_materials = pd.read_csv(materials_in)
+    
+    # 2. Validate Raw Data
+    df_products = validate_products(df_products)
+    df_materials = validate_materials(df_materials)
+    
+    # 3. Clean Data
     cleaner = DataCleaner()
-    df_cleaned = cleaner.clean(df)
+    df_products = cleaner.clean_products(df_products)
+    df_materials = cleaner.clean_materials(df_materials)
     
-    df_valid = validate_data(df_cleaned)
-    
+    # 4. Feature Engineering
     engineer = FeatureEngineer()
-    df_processed = engineer.engineer_features(df_valid)
+    df_products = engineer.engineer_product_features(df_products)
+    df_materials = engineer.engineer_material_features(df_materials)
     
-    # Load (Save Artifacts)
-    df_processed.to_csv(processed_path, index=False)
-    
-    metadata = {
-        "num_rows": len(df_processed),
-        "num_columns": len(df_processed.columns),
-        "features": list(df_processed.columns),
-        "pipeline_version": "1.0.0"
-    }
-    
-    with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=4)
-        
-    print(f"Pipeline complete. Processed data saved to {processed_path}")
+    # 5. Save Processed Data
+    df_products.to_csv(products_out, index=False)
+    df_materials.to_csv(materials_out, index=False)
+    print("Pipeline complete. Saved processed datasets.")
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    input_path = os.path.join(base_dir, 'data', 'raw', 'raw_packaging_data.csv')
-    processed_path = os.path.join(base_dir, 'data', 'processed', 'processed_dataset.csv')
-    metadata_path = os.path.join(base_dir, 'data', 'metadata', 'metadata.json')
-    
-    run_pipeline(input_path, processed_path, metadata_path)
+    run_pipeline()
