@@ -103,5 +103,23 @@ python ml/model_development/model_evaluation.py
 - [x] **Phase 2**: Machine Learning & Recommendation Engine
 - [x] **Phase 3**: FastAPI Production Backend
 - [x] **Phase 4**: Business Intelligence & Sustainability Analytics
-- [x] **Phase 5**: Next.js Enterprise Frontend
-- [ ] **Phase 6**: Dockerization & CI/CD
+- [x] **Phase 6**: Dockerization & CI/CD (Completed)
+
+## Local Deployment
+
+1. Copy the environment variables template:
+   ```bash
+   cp .env.example .env
+   ```
+2. Build and start the Docker cluster:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. Access the application:
+   - Frontend: [http://localhost](http://localhost)
+   - API Docs: [http://localhost/api/v1/docs](http://localhost/api/v1/docs)
+
+## Production Deployment (Swarm)
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```

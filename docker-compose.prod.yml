@@ -1,0 +1,43 @@
+# ==========================================
+# PRODUCTION DOCKER COMPOSE OVERRIDES
+# ==========================================
+# Usage:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+version: '3.8'
+
+services:
+  db:
+    # Limit DB resources to prevent out-of-memory cascading failures
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  backend:
+    # Scale backend across multiple instances in a Swarm/Compose setup
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2.0' # ML Inference requires CPU overhead
+          memory: 2G
+    # Increase Uvicorn workers for production concurrency
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
+  frontend:
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  proxy:
+    # The reverse proxy scales to handle incoming traffic bursts
+    deploy:
+      replicas: 2
