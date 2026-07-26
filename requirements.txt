@@ -5,3 +5,7 @@ seaborn
 jupyter
 scikit-learn
 pandera
+scikit-learn
+xgboost
+optuna
+joblib
